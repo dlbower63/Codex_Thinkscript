@@ -52,8 +52,8 @@ input showTP3Level = yes;
 
 input showDash = yes;
 
-DefineColor("Bull", CreateColor(0, 201, 167));
-DefineColor("Bear", CreateColor(255, 107, 107));
+DefineGlobalColor("Bull", CreateColor(0, 201, 167));
+DefineGlobalColor("Bear", CreateColor(255, 107, 107));
 
 # ========================== CORE ENGINE =========================
 # Efficiency-ratio adaptive baseline
@@ -106,12 +106,12 @@ def shortSignal = flipDn and (!useQuality or qualityShort >= minQuality);
 # ============================ VISUALS ===========================
 plot FlowBaseline = if showBaseline then flowBase else Double.NaN;
 FlowBaseline.SetLineWeight(2);
-FlowBaseline.AssignValueColor(if flowDir == 1 then Color("Bull") else if flowDir == -1 then Color("Bear") else Color.GRAY);
+FlowBaseline.AssignValueColor(if flowDir == 1 then GlobalColor("Bull") else if flowDir == -1 then GlobalColor("Bear") else Color.GRAY);
 
 plot EnvelopeUpper = if showEnvelope then envUp else Double.NaN;
 plot EnvelopeLower = if showEnvelope then envDn else Double.NaN;
-EnvelopeUpper.AssignValueColor(if flowDir == 1 then Color("Bull") else if flowDir == -1 then Color("Bear") else Color.GRAY);
-EnvelopeLower.AssignValueColor(if flowDir == 1 then Color("Bull") else if flowDir == -1 then Color("Bear") else Color.GRAY);
+EnvelopeUpper.AssignValueColor(if flowDir == 1 then GlobalColor("Bull") else if flowDir == -1 then GlobalColor("Bear") else Color.GRAY);
+EnvelopeLower.AssignValueColor(if flowDir == 1 then GlobalColor("Bull") else if flowDir == -1 then GlobalColor("Bear") else Color.GRAY);
 EnvelopeUpper.SetStyle(Curve.SHORT_DASH);
 EnvelopeLower.SetStyle(Curve.SHORT_DASH);
 
@@ -120,8 +120,8 @@ def ribbonBull = if showRibbon and flowDir == 1 then flowBase else Double.NaN;
 def ribbonBear = if showRibbon and flowDir == -1 then flowBase else Double.NaN;
 def anchorBull = if showRibbon and flowDir == 1 then hl2 else Double.NaN;
 def anchorBear = if showRibbon and flowDir == -1 then hl2 else Double.NaN;
-AddCloud(ribbonBull, anchorBull, Color("Bull"), Color("Bull"));
-AddCloud(ribbonBear, anchorBear, Color("Bear"), Color("Bear"));
+AddCloud(ribbonBull, anchorBull, GlobalColor("Bull"), GlobalColor("Bull"));
+AddCloud(ribbonBear, anchorBear, GlobalColor("Bear"), GlobalColor("Bear"));
 
 # Candle coloring (Gradient = blend toward dark gray as quality falls)
 def gt = Min(flowQuality, 100) / 100.0;
@@ -135,9 +135,9 @@ def withFlow = (flowDir == 1 and close >= open) or (flowDir == -1 and close < op
 
 AssignPriceColor(
     if candleStyle == candleStyle.None or flowDir == 0 then Color.CURRENT
-    else if candleStyle == candleStyle.Solid then (if flowDir == 1 then Color("Bull") else Color("Bear"))
+    else if candleStyle == candleStyle.Solid then (if flowDir == 1 then GlobalColor("Bull") else GlobalColor("Bear"))
     else if candleStyle == candleStyle.TwoTone then
-        (if withFlow then (if flowDir == 1 then Color("Bull") else Color("Bear")) else Color.DARK_GRAY)
+        (if withFlow then (if flowDir == 1 then GlobalColor("Bull") else GlobalColor("Bear")) else Color.DARK_GRAY)
     else (if flowDir == 1 then CreateColor(bullR, bullG, bullB) else CreateColor(bearR, bearG, bearB))
 );
 
@@ -166,7 +166,7 @@ def tradeActive = showTargets and (tradeDir != 0 or tradeDir[1] != 0);
 plot EntryLine = if tradeActive then entryLevel else Double.NaN;
 EntryLine.SetLineWeight(2);
 def tradeSide = CompoundValue(1, if sig then dirNow else tradeSide[1], 0);
-EntryLine.AssignValueColor(if tradeSide == 1 then Color("Bull") else Color("Bear"));
+EntryLine.AssignValueColor(if tradeSide == 1 then GlobalColor("Bull") else GlobalColor("Bear"));
 
 plot SL = if tradeActive and showSLLevel then slLevel else Double.NaN;
 SL.SetDefaultColor(Color.PINK);
@@ -195,19 +195,19 @@ def lastSigDir = CompoundValue(1, if longSignal then 1 else if shortSignal then 
 AddChartBubble(showSignals and longSignal, low - atrFlow * 0.4,
     (if showQualityInLabel then "BUY " + qualityLong else "BUY") +
     (if richLabels then "  Eff " + Round(efficiency * 100, 0) + "% Vol " + Round(volRatio, 1) + "x" else ""),
-    Color("Bull"), no);
+    GlobalColor("Bull"), no);
 AddChartBubble(showSignals and shortSignal, high + atrFlow * 0.4,
     (if showQualityInLabel then "SELL " + qualityShort else "SELL") +
     (if richLabels then "  Eff " + Round(efficiency * 100, 0) + "% Vol " + Round(volRatio, 1) + "x" else ""),
-    Color("Bear"), yes);
+    GlobalColor("Bear"), yes);
 
 plot BuyTriangle = if showTriangles and longSignal then low else Double.NaN;
 BuyTriangle.SetPaintingStrategy(PaintingStrategy.ARROW_UP);
-BuyTriangle.SetDefaultColor(Color("Bull"));
+BuyTriangle.SetDefaultColor(GlobalColor("Bull"));
 BuyTriangle.SetLineWeight(3);
 plot SellTriangle = if showTriangles and shortSignal then high else Double.NaN;
 SellTriangle.SetPaintingStrategy(PaintingStrategy.ARROW_DOWN);
-SellTriangle.SetDefaultColor(Color("Bear"));
+SellTriangle.SetDefaultColor(GlobalColor("Bear"));
 SellTriangle.SetLineWeight(3);
 
 # ============================ DASHBOARD =========================
@@ -217,21 +217,21 @@ def flowAge = BarNumber() - flowFlipBar;
 AddLabel(showDash, "APEX FLOW: " +
     (if flowDir == 1 then "BULLISH" else if flowDir == -1 then "BEARISH" else "NEUTRAL") +
     " (" + flowAge + " bars)",
-    if flowDir == 1 then Color("Bull") else if flowDir == -1 then Color("Bear") else Color.GRAY);
+    if flowDir == 1 then GlobalColor("Bull") else if flowDir == -1 then GlobalColor("Bear") else Color.GRAY);
 AddLabel(showDash, "Quality " + flowQuality + (if flowQuality >= minQuality then " ARMED" else " building"),
     if flowQuality >= minQuality then Color.WHITE else Color.GRAY);
 AddLabel(showDash, "Eff " + Round(efficiency * 100, 1) + "%  Vol " + Round(volRatio, 2) + "x  Body " + Round(bodyPct * 100, 0) + "%", Color.LIGHT_GRAY);
-AddLabel(showDash, "Stretch " + Round(distATR, 2) + "x ATR", if distATR >= 3 then Color("Bear") else Color.LIGHT_GRAY);
+AddLabel(showDash, "Stretch " + Round(distATR, 2) + "x ATR", if distATR >= 3 then GlobalColor("Bear") else Color.LIGHT_GRAY);
 AddLabel(showDash, "Baseline " + Round(flowBase, 2) + "  Env +/-" + Round(atrFlow * envMult, 2), Color.LIGHT_GRAY);
 AddLabel(showDash, "Gate: min Q " + minQuality + ", " + confirmCloses + " close confirm", Color.GRAY);
 AddLabel(showDash and !IsNaN(lastSigBar),
     "Last: " + (if lastSigDir == 1 then "BUY" else "SELL") + " " + (BarNumber() - lastSigBar) + " bars ago",
-    if lastSigDir == 1 then Color("Bull") else Color("Bear"));
+    if lastSigDir == 1 then GlobalColor("Bull") else GlobalColor("Bear"));
 AddLabel(showDash,
     if tradeDir == 1 then "LONG ACTIVE  SL " + Round(slLevel, 2)
     else if tradeDir == -1 then "SHORT ACTIVE  SL " + Round(slLevel, 2)
     else "FLAT",
-    if tradeDir == 1 then Color("Bull") else if tradeDir == -1 then Color("Bear") else Color.GRAY);
+    if tradeDir == 1 then GlobalColor("Bull") else if tradeDir == -1 then GlobalColor("Bear") else Color.GRAY);
 
 # ============================= ALERTS ===========================
 Alert(longSignal, "[JOAT] Apex Flow Engine - BUY", Alert.BAR, Sound.Ring);
